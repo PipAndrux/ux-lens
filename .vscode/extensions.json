@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "vscjava.vscode-java-pack",
+    "vmware.vscode-boot-dev-pack",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "usernamehw.errorlens",
+    "deque-systems.vscode-axe-linter",
+    "ms-azuretools.vscode-docker",
+    "github.vscode-github-actions",
+    "eamodio.gitlens",
+    "humao.rest-client"
+  ]
+}

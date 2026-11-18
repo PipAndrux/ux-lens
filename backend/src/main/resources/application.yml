@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: ux-lens
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+uxlens:
+  anthropic:
+    # Read from the environment; never commit a real key.
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: claude-opus-5-5

@@ -1,0 +1,24 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-uxlens}
+      POSTGRES_USER: ${POSTGRES_USER:-uxlens}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-uxlens}
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-uxlens}"]
+      interval: 5s
+      retries: 10
+
+  backend:
+    build: ../backend
+    env_file: ../.env
+    ports: ["8080:8080"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
