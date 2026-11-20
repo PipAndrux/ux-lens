@@ -28,7 +28,8 @@
 <!-- docs/architecture.svg goes here -->
 
 ## Technical decisions
-Architecture Decision Records live in [`docs/adr/`](docs/adr/).
+Architecture Decision Records live in [`docs/adr/`](docs/adr/). Highlights:
+- [ADR 0002: Cost-free by default](docs/adr/0002-cost-free-by-default.md): the AI sits behind a port with a mock and a Claude adapter, so the project runs at zero API cost unless a key is configured.
 
 ## Run locally
 ```bash
