@@ -5,6 +5,15 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 6MB
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/uxlens}
+    username: ${POSTGRES_USER:uxlens}
+    password: ${POSTGRES_PASSWORD:uxlens}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway owns the schema; Hibernate only checks that the entities match it.
+      ddl-auto: validate
 
 management:
   endpoints:
@@ -13,6 +22,9 @@ management:
         include: health,info
 
 uxlens:
+  ai:
+    # mock (default, free) or claude (needs ANTHROPIC_API_KEY). See docs/adr/0002.
+    provider: ${UXLENS_AI_PROVIDER:mock}
   anthropic:
     # Read from the environment; never commit a real key.
     api-key: ${ANTHROPIC_API_KEY:}
