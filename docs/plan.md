@@ -5,6 +5,8 @@ UX Lens is a portfolio project. The user uploads a screenshot (a web page, an ap
 
 Decisions already made: **Claude** (official Anthropic Java SDK), a **monorepo**, and deploy on **Render/Railway (backend) + Neon (Postgres + pgvector) + Vercel (frontend)**.
 
+**Budget: €0 beyond the Claude Pro subscription** (see ADR 0002). The AI sits behind an `AnalysisProvider` port: a mock adapter is the default, and the Claude adapter only activates when an API key is configured. The public deployment runs in demo mode with pre-computed sample analyses.
+
 Target time: about 6 weeks part-time (roughly 10–12 hours a week).
 
 ---
@@ -16,7 +18,7 @@ React + TS (Vercel) ──REST/SSE──► Spring Boot API (Render/Railway, Doc
                                     │  ├─ AnalysisController  (upload, status, report, compare, pdf)
                                     │  ├─ JobWorker  (Postgres-backed queue, SELECT … FOR UPDATE SKIP LOCKED)
                                     │  ├─ RagService (pgvector similarity search over guideline chunks)
-                                    │  ├─ ClaudeClient (Anthropic Java SDK, vision + structured output)
+                                    │  ├─ AnalysisProvider port → Mock (default) | Claude (Anthropic Java SDK)
                                     │  └─ ReportService / PdfService
                                     ▼
                          Postgres + pgvector (Neon)     Object storage for images (Postgres bytea → later S3/R2)
@@ -121,11 +123,11 @@ ux-lens/
 2. `infra/docker-compose.yml`: `pgvector/pgvector:pg16` plus the backend.
 3. Skeletons: Spring Boot (`/actuator/health`) and Vite React. Make both CI workflows pass.
 4. Figma: tokens, components and the 4 screens. Link it in the README.
-5. Get an Anthropic API key and set a monthly spend limit in the Console.
+5. Optional, only for live analyses: an Anthropic API key with a small credit and an equal spend limit (issue #3).
 
 ### Week 1: Feature 1, upload and text report (MVP core)
 1. `POST /api/analyses` (multipart): check type (png, jpg, webp) and size (≤ 5 MB) and verify the magic bytes. Resize to a maximum of 1568 px on the longest side. Save the image and its SHA-256 hash.
-2. `ClaudeClient`: one vision call with a system prompt (role: senior UX auditor, Nielsen + WCAG) and a JSON schema for structured output. Handle `stop_reason` (refusal, max_tokens).
+2. `AnalysisProvider` port with `MockAnalysisProvider` (default) and `ClaudeAnalysisProvider`: one vision call with a system prompt (role: senior UX auditor, Nielsen + WCAG) and a JSON schema for structured output. Handle `stop_reason` (refusal, max_tokens).
 3. Synchronous at first. Save the analysis and its issues (Flyway migration: `analysis`, `issue`, `api_usage`).
 4. Frontend: Upload page (dropzone) → Report page (issues grouped by severity).
 5. **Milestone v0.1**: upload a screenshot, get a list of issues.
@@ -154,8 +156,9 @@ ux-lens/
    - A daily budget guard.
    - Log usage to `api_usage`.
    - An admin `/api/stats/costs` endpoint.
-4. Deploy: Neon (enable the `vector` extension), the backend Docker image on Render or Railway, the frontend on Vercel, CORS, and environment variables.
-5. Add the live link to the README.
+4. Demo mode (issue #17): a gallery of sample screenshots with pre-computed analyses; upload disabled on the public deployment.
+5. Deploy: Neon (enable the `vector` extension), the backend Docker image on Render or Railway, the frontend on Vercel, CORS, and environment variables.
+6. Add the live link to the README.
 
 ### Week 5: Features 4 and 5, compare and PDF
 1. Compare: `POST /api/comparisons` with two analyses (before and after). Issue diff: resolved, new and persistent, matched by `criterion_id` and bbox overlap (IoU), plus the score deltas. UI: images side by side or a slider, with the diff list.
