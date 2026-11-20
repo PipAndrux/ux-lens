@@ -11,7 +11,7 @@ UX Lens analyzes UI screenshots against Nielsen heuristics and WCAG 2.2 using Cl
 - `docs/adr/`: Architecture Decision Records (copy `0000-template.md`)
 
 ## Commands
-- Backend tests: `cd backend && ./gradlew test`
+- Backend tests: `cd backend && ./gradlew test` (needs Docker running: tests use Testcontainers)
 - Frontend: `cd frontend && npm run lint && npm run typecheck && npm run build`
 - Local stack: `docker compose -f infra/docker-compose.yml up --build`
 
