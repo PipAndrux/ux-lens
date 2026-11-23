@@ -32,11 +32,32 @@ Architecture Decision Records live in [`docs/adr/`](docs/adr/). Highlights:
 - [ADR 0002: Cost-free by default](docs/adr/0002-cost-free-by-default.md): the AI sits behind a port with a mock and a Claude adapter, so the project runs at zero API cost unless a key is configured.
 
 ## Run locally
+Requirements: Docker (with Compose) and Node 22. No API key needed: the app uses the free mock AI provider by default ([ADR 0002](docs/adr/0002-cost-free-by-default.md)).
+
 ```bash
-cp .env.example .env   # add your ANTHROPIC_API_KEY
+cp .env.example .env
 docker compose -f infra/docker-compose.yml up --build
+```
+
+The backend is up when http://localhost:8080/actuator/health returns `{"status":"UP"}`. For the frontend:
+
+```bash
 cd frontend && npm install && npm run dev
 ```
+
+### Windows setup (WSL 2)
+1. In PowerShell (admin): `wsl --install -d Ubuntu`, then restart and create your Linux user.
+2. Install Docker **inside Ubuntu** (this avoids Docker Desktop DNS problems on some networks):
+   ```bash
+   sudo apt update && sudo apt install -y docker.io docker-compose-v2
+   sudo usermod -aG docker $USER
+   ```
+3. In PowerShell: `wsl --shutdown`, reopen Ubuntu, check with `docker run hello-world`.
+4. Clone the repo inside Linux (`~/code`, not `/mnt/c/...`, which is much slower) and run the commands above.
+
+Troubleshooting:
+- `WININET_E_NAME_NOT_RESOLVED` when installing Ubuntu: try `wsl --install -d Ubuntu --web-download`, turn off VPNs, or set your network DNS to `1.1.1.1` / `8.8.8.8`.
+- `lookup auth.docker.io: no such host` with Docker Desktop: use Docker inside Ubuntu as in step 2.
 
 ## Roadmap
 - **v0.1** — upload + text report
