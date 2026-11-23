@@ -1,5 +1,6 @@
 package dev.uxlens.analysis.web;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -35,21 +36,27 @@ class AnalysisControllerTest {
     @Autowired ImageProcessor imageProcessor;
 
     @Test
-    void uploadCreatesAPendingAnalysisWithANormalizedImage() throws Exception {
+    void uploadAnalyzesANormalizedImageWithTheMockProvider() throws Exception {
         String location = mvc.perform(multipart("/api/analyses").file(file(TestImages.jpeg(3136, 1960))))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", startsWith("/api/analyses/")))
-                .andExpect(jsonPath("$.status").value("PENDING"))
+                .andExpect(jsonPath("$.status").value("DONE"))
                 .andExpect(jsonPath("$.image.mediaType").value("image/png"))
                 .andExpect(jsonPath("$.image.width").value(1568))
                 .andExpect(jsonPath("$.image.height").value(980))
                 .andExpect(jsonPath("$.image.url", endsWith("/image")))
-                .andExpect(jsonPath("$.issues").isEmpty())
+                .andExpect(jsonPath("$.summary", containsString("no AI was used")))
+                .andExpect(jsonPath("$.scores.accessibility").value(58))
+                .andExpect(jsonPath("$.issues.length()").value(5))
+                .andExpect(jsonPath("$.issues[0].criterionId").value("WCAG-1.4.3"))
+                .andExpect(jsonPath("$.issues[0].boundingBox.x").value(0.62))
+                .andExpect(jsonPath("$.issues[4].boundingBox").doesNotExist())
                 .andReturn().getResponse().getHeader("Location");
 
         mvc.perform(get(location))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("PENDING"));
+                .andExpect(jsonPath("$.status").value("DONE"))
+                .andExpect(jsonPath("$.issues.length()").value(5));
 
         mvc.perform(get(location + "/image"))
                 .andExpect(status().isOk())

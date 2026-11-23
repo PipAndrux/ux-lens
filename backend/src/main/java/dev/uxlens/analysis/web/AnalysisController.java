@@ -1,6 +1,7 @@
 package dev.uxlens.analysis.web;
 
 import dev.uxlens.analysis.Analysis;
+import dev.uxlens.analysis.AnalysisRunner;
 import dev.uxlens.analysis.AnalysisService;
 import dev.uxlens.analysis.AnalysisService.Submission;
 import java.io.IOException;
@@ -23,23 +24,28 @@ import org.springframework.web.multipart.MultipartFile;
 public class AnalysisController {
 
     private final AnalysisService service;
+    private final AnalysisRunner runner;
 
-    public AnalysisController(AnalysisService service) {
+    public AnalysisController(AnalysisService service, AnalysisRunner runner) {
         this.service = service;
+        this.runner = runner;
     }
 
     /**
-     * Uploads a screenshot. Returns 201 with the new analysis (status PENDING), or 200 with the earlier result
-     * when the same file was already analyzed.
+     * Uploads and analyzes a screenshot. Returns 201 with the new analysis (status DONE, or FAILED with an error
+     * message), or 200 with the earlier result when the same file was already analyzed. Synchronous until the job
+     * queue lands; then this will return 202 and the client will poll.
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AnalysisResponse> upload(@RequestParam("file") MultipartFile file) throws IOException {
         Submission submission = service.submit(file.getBytes());
-        AnalysisResponse body = AnalysisResponse.from(submission.analysis());
         if (submission.reused()) {
-            return ResponseEntity.ok(body);
+            return ResponseEntity.ok(AnalysisResponse.from(submission.analysis()));
         }
-        return ResponseEntity.created(URI.create("/api/analyses/" + body.id())).body(body);
+        UUID id = submission.analysis().getId();
+        runner.run(id);
+        AnalysisResponse body = AnalysisResponse.from(load(id));
+        return ResponseEntity.created(URI.create("/api/analyses/" + id)).body(body);
     }
 
     @GetMapping("/{id}")
