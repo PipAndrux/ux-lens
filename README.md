@@ -39,7 +39,15 @@ cp .env.example .env
 docker compose -f infra/docker-compose.yml up --build
 ```
 
-The backend is up when http://localhost:8080/actuator/health returns `{"status":"UP"}`. For the frontend:
+The backend is up when http://localhost:8080/actuator/health returns `{"status":"UP"}`. Try an analysis:
+
+```bash
+curl -F file=@screenshot.png http://localhost:8080/api/analyses
+```
+
+With the default mock provider the result is a fixed sample report, which says so in its summary. For real analyses with Claude, set `UXLENS_AI_PROVIDER=claude` and `ANTHROPIC_API_KEY` in `.env`; every call is then billed and logged with its cost in the `api_usage` table.
+
+For the frontend:
 
 ```bash
 cd frontend && npm install && npm run dev
