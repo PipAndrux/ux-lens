@@ -47,7 +47,10 @@ public class Analysis {
     @Column(name = "image_height", nullable = false)
     private int imageHeight;
 
-    /** Loaded only when needed: listing analyses should not pull every image into memory. */
+    /**
+     * The normalized PNG. LAZY is only a hint here (true lazy loading of a column needs Hibernate bytecode
+     * enhancement), so list views such as the history page must use a projection that leaves this column out.
+     */
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "image_data", nullable = false)
     private byte[] imageData;
